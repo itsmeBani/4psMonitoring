@@ -47,15 +47,28 @@ import {MemberData} from "../interfaces/Memberinterface.ts";
 
 import EducationalStatus from "./EducationalStatus.tsx";
 import supabase from "../supabase-config/supabase.tsx";
+import {FormMember} from "./FormMember.tsx";
+import {useState} from "react";
 
 
 interface ColumnsProps {
     onArchiveMember: (id: string) => void;
     mode: string
+    HandleEditMember: (memberdata: MemberData) => void
+    HandleViewMember: (memberdata: MemberData) => void
+    PermanentlyDelete: (id: string) => void
+    Unarchived: (memberdata: MemberData) => void
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const columns = ({onArchiveMember, mode}: ColumnsProps): ColumnDef<MemberData>[] => [
+export const columns = ({
+                            onArchiveMember,
+                            mode,
+                            HandleEditMember,
+                            HandleViewMember,
+                            PermanentlyDelete,
+                            Unarchived
+                        }: ColumnsProps): ColumnDef<MemberData>[] => [
     {
         id: "select",
         header: ({table}) => (
@@ -163,15 +176,19 @@ export const columns = ({onArchiveMember, mode}: ColumnsProps): ColumnDef<Member
 
                         {mode === "Archived" ?
                             <>
-                                <DropdownMenuItem><PenBox/> Edit Information</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => HandleEditMember(row?.original)}><PenBox/> Edit
+                                    Information</DropdownMenuItem>
                                 <DropdownMenuSeparator/>
-                                <DropdownMenuItem><User2/>View Member</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => HandleViewMember(row?.original)}><User2/>View
+                                    Member</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => onArchiveMember(row.original.user_id)}
                                                   variant={"destructive"}><ArchiveIcon/>Archive</DropdownMenuItem>
 
                             </> : <>
-                                <DropdownMenuItem variant={"default"}><ArchiveIcon/>Unarchived</DropdownMenuItem>
-                                <DropdownMenuItem variant={"destructive"}><Trash/>Delete </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => Unarchived(row?.original)}
+                                                  variant={"default"}><ArchiveIcon/>Unarchived</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => PermanentlyDelete(row.original.user_id)}
+                                                  variant={"destructive"}><Trash/>Delete </DropdownMenuItem>
 
                             </>
 
@@ -218,8 +235,14 @@ interface DatatableProps {
     mode: "Archived" | "Unarchived"
 }
 
+
+type ModalType = "INSERT" | "UPDATE" | "VIEW"
+
 export function MemberTable({data, reload, mode}: DatatableProps) {
     const [sorting, setSorting] = React.useState<SortingState>([])
+    const [OpenModal, setOpenModal] = useState<boolean>(false)
+    const [EditedData, setEditedData] = useState<MemberData | undefined>()
+    const [modaltype, setModalType] = useState<ModalType | undefined>()
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []
     )
@@ -239,10 +262,80 @@ export function MemberTable({data, reload, mode}: DatatableProps) {
         }
     }
 
+    const HandleEditMember = (memberdata: MemberData) => {
+        setModalType("UPDATE")
+        setEditedData(memberdata)
+        setOpenModal(true)
+
+    }
+
+    const HandleViewMember = (memberdata: MemberData) => {
+        setModalType("VIEW")
+        setEditedData(memberdata)
+        setOpenModal(true)
+    }
+    const HandleInsertModal = () => {
+        setModalType("INSERT")
+        setOpenModal(true)
+    }
+    const CloseModal = () => {
+        setOpenModal(false)
+    }
+    const BatchDelete = async () => {
+        const {selectedId} = await getSelectedRow()
+        const response = await supabase
+            .from('archived_member')
+            .delete()
+            .in('user_id', selectedId)
+        if (!response.error) {
+            reload()
+        }
+    }
+    const Unarchived = async (memberdata: MemberData) => {
+        const {error: ErrorAdding} = await supabase
+            .from('member')
+            .insert({
+                lastname: memberdata?.lastname,
+                firstname: memberdata?.firstname,
+                address: memberdata?.address,
+                birthdate: memberdata?.birthdate,
+                contact: memberdata?.contact,
+                school: memberdata?.school,
+                status: memberdata?.status,
+            })
+
+        if (ErrorAdding) return
+        const {error: ErrorfDeleting} = await supabase
+            .from('archived_member')
+            .delete()
+            .eq('user_id', memberdata?.user_id)
+
+        if (ErrorfDeleting) return
+
+        reload()
+    }
+
+    const PermanentlyDelete = async (id: string): Promise<void> => {
+        const {error} = await supabase
+            .from('archived_member')
+            .delete()
+            .eq('user_id', id)
+        if (!error) {
+            reload()
+        }
+    }
+
 
     const table = useReactTable({
         data,
-        columns: columns({onArchiveMember: ArchiveMember, mode: mode}),
+        columns: columns({
+            onArchiveMember: ArchiveMember,
+            mode: mode,
+            HandleEditMember,
+            HandleViewMember,
+            PermanentlyDelete,
+            Unarchived
+        }),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -261,104 +354,117 @@ export function MemberTable({data, reload, mode}: DatatableProps) {
     const getSelectedRow = async () => {
         const RowSelected = table.getSelectedRowModel().rows;
         const selectedId = [];
+        const selectedData = []
         for (let index = 0; index <= RowSelected.length - 1; index++) {
             selectedId.push(RowSelected[index]?.original?.user_id)
+            selectedData.push(RowSelected[index]?.original)
         }
-        return selectedId
+        return {selectedId, selectedData}
     }
 
 
     const BatchArchived = async () => {
-        const Ids = await getSelectedRow()
+        const {selectedId} = await getSelectedRow()
         const {error} = await supabase
             .from('member')
             .delete()
-            .in('user_id', Ids)
-    if (!error){
-       reload()
-    }
+            .in('user_id', selectedId)
+        if (!error) {
+            reload()
+        }
 
     }
-const BatchUnarchive=()=>{
 
-}
 
-    console.log(table.getSelectedRowModel().rows)
     return (
         <div className="w-full flex flex-col gap-4">
-
+            <div className="flex place-items-end w-full justify-end ">
+                <FormMember
+                    mode={mode}
+                    open={OpenModal}
+                    EditedData={EditedData}
+                    modaltype={modaltype}
+                    CloseModal={CloseModal}
+                    HandleInsertModal={HandleInsertModal}
+                    reload={reload}/>
+            </div>
             <div className=" flex flex-row gap-2  justify-between w-full   ">
-               <div>
-                   {
-                       table.getSelectedRowModel().rows.length > 0 &&
-                      <div className="flex gap-2 place-items-center">
+                <div>
+                    {
+                        table.getSelectedRowModel().rows.length > 0 &&
+                        <div className="flex gap-2 place-items-center">
 
-                          <Button variant={"outline"} className="bg-unset hover:text-white text-red-600 hover:bg-red-500 shadow-none" onClick={mode === "Archived" ? BatchArchived : BatchUnarchive}>
-                              <ArchiveIcon /></Button>
-                          <p className="CircularFont text-[12px]">{mode === "Archived" ? "Archive" : "Unarchive"}  {table.getSelectedRowModel().rows.length} records</p>
-                      </div>
+                            <Button variant={"outline"}
+                                    className="bg-unset hover:text-white text-red-600 hover:bg-red-500 shadow-none"
+                                    onClick={mode === "Archived" ? BatchArchived : BatchDelete}>
 
-                   }
+                                {mode === "Archived" ?     <ArchiveIcon/> : <Trash/>}
+
+                            </Button>
+                            <p className="CircularFont text-[12px]">Selected  {table.getSelectedRowModel().rows.length} records</p>
+                        </div>
+
+                    }
                 </div>
-             <div className="flex flex-row gap-2" >
-                 <Input
-                     placeholder="Filter Names..."
-                     value={(table.getColumn("firstname")?.getFilterValue() as string) ?? ""}
-                     onChange={(event) =>
-                         table.getColumn("firstname")?.setFilterValue(event.target.value)
-                     }
-                     className="w-[300px] border-black/40"
-                 />
-                 <DropdownMenu>
-                     <DropdownMenuTrigger asChild>
-                         <Button variant="outline" className=" CircularFont text-black/80 border-black/40">
-                             Columns <ChevronDown/>
-                         </Button>
-                     </DropdownMenuTrigger>
-                     <DropdownMenuContent align="end" className="CircularFont">
-                         {table
-                             .getAllColumns()
-                             .filter((column) => column.getCanHide())
-                             .map((column) => {
-                                 return (
-                                     <DropdownMenuCheckboxItem
-                                         key={column.id}
-                                         className="capitalize"
-                                         checked={column.getIsVisible()}
-                                         onCheckedChange={(value) =>
-                                             column.toggleVisibility(!!value)
-                                         }
-                                     >
-                                         {column.id}
-                                     </DropdownMenuCheckboxItem>
-                                 )
-                             })}
-                     </DropdownMenuContent>
-                 </DropdownMenu>
-                 <DropdownMenu>
-                     <DropdownMenuTrigger asChild>
-                         <Button variant="outline" className=" CircularFont text-black/80 border-black/40">
-                             Status <ChevronDown/>
-                         </Button>
-                     </DropdownMenuTrigger>
-                     <DropdownMenuContent className="CircularFont flex flex-col gap-1 p-2">
+                <div className="flex flex-row gap-2">
+                    <Input
+                        placeholder="Filter Names..."
+                        value={(table.getColumn("firstname")?.getFilterValue() as string) ?? ""}
+                        onChange={(event) =>
+                            table.getColumn("firstname")?.setFilterValue(event.target.value)
+                        }
+                        className="w-[300px] border-black/40"
+                    />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className=" CircularFont text-black/80 border-black/40">
+                                Columns <ChevronDown/>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="CircularFont">
+                            {table
+                                .getAllColumns()
+                                .filter((column) => column.getCanHide())
+                                .map((column) => {
+                                    return (
+                                        <DropdownMenuCheckboxItem
+                                            key={column.id}
+                                            className="capitalize"
+                                            checked={column.getIsVisible()}
+                                            onCheckedChange={(value) =>
+                                                column.toggleVisibility(!!value)
+                                            }
+                                        >
+                                            {column.id}
+                                        </DropdownMenuCheckboxItem>
+                                    )
+                                })}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className=" CircularFont text-black/80 border-black/40">
+                                Status <ChevronDown/>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="CircularFont flex flex-col gap-1 p-2">
 
-                         {filterOptions.map((option) => {
-                             return (
-                                 <DropdownMenuCheckboxItem key={option.key}
-                                                           onClick={() => table.getColumn("status")?.setFilterValue(option.value)}
-                                                           className={"p-0"}>
-                                     <div
-                                         className="flex w-full p-1 rounded-md border-[1px] text-gray-500 gap-1 text-[12px] border-gray-400">
-                                         {option.icon}{option.key}
-                                     </div>
-                                 </DropdownMenuCheckboxItem>
-                             )
-                         })}
+                            {filterOptions.map((option) => {
+                                return (
+                                    <DropdownMenuCheckboxItem key={option.key}
+                                                              onClick={() => table.getColumn("status")?.setFilterValue(option.value)}
+                                                              className={"p-0"}>
+                                        <div
+                                            className="flex w-full p-1 rounded-md border-[1px] text-gray-500 gap-1 text-[12px] border-gray-400">
+                                            {option.icon}{option.key}
+                                        </div>
+                                    </DropdownMenuCheckboxItem>
+                                )
+                            })}
 
-                     </DropdownMenuContent>
-                 </DropdownMenu>
-             </div>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
             <div className="rounded-md border-[1px] border-black/25 py-3 px-5">
                 <Table>

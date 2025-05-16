@@ -6,7 +6,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "./ui/dialog.tsx"
 import { Input } from "./ui/input.tsx"
 import * as z from "zod"
@@ -23,7 +22,8 @@ import {
 } from "./ui/form.tsx"
 
 import {
-    PlusIcon
+    Loader2,
+    PlusIcon, XIcon
 } from "lucide-react"
 import {
     Select,
@@ -38,61 +38,123 @@ import {toast} from "sonner";
 import {NewMemberSchema} from "../Schema/FormSchemas.ts";
 import EducationalStatus from "./EducationalStatus.tsx";
 import supabase from "../supabase-config/supabase.tsx"
+import * as React from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import {MemberData} from "../interfaces/Memberinterface.ts";
+import {useState} from "react";
+
 
 interface FormProps {
     reload: ()=>void
+    open:boolean
+    EditedData:MemberData | undefined
+    HandleInsertModal: ()=>void
+    modaltype:string | undefined
+    CloseModal:()=>void
+    mode:string
 }
 
-export function FormMember({reload} : FormProps) {
+
+export function FormMember({reload,open,EditedData,HandleInsertModal,modaltype,CloseModal,mode} : FormProps) {
+    const [loading,setloading]=useState<boolean>(false)
+    const defaultValues = {
+        firstname: "" ,
+        lastname: "",
+        address: "",
+        birthdate: "",
+        school: "",
+        status: "",
+        contact: "",
+    }
     const form = useForm < z.infer < typeof NewMemberSchema >> ({
         resolver: zodResolver(NewMemberSchema),
-        defaultValues: {
-            firstname: "",
-            lastname: "",
-            address: "",
-            birthdate: "",
-            school: "",
-            status: "",
-            contact: "",
-        },
+        defaultValues: defaultValues,
     })
+    React.useEffect(() => {
+        if (EditedData) {
+            form.reset({...EditedData, birthdate: EditedData?.birthdate.toString()});
+        }
+    }, [EditedData]);
 
     async function onSubmit(values: z.infer < typeof NewMemberSchema > ) {
+        setloading(true)
         try {
-            const { error } = await supabase
-                .from('member')
-                .insert(values)
+          if (modaltype === "UPDATE"){
+              const { error } = await supabase
+                  .from('member')
+                  .update(values)
+                  .eq('user_id', EditedData?.user_id)
 
-            if (error) {
-                console.log(error)
-            }
+              console.log(error)
+          }else {
+              const { error } = await supabase
+                  .from('member')
+                  .insert(values)
+
+              if (error) {
+                  console.log(error)
+              }
+
+          }
+
+
+
             form.reset()
             reload()
             toast.success('Created Successfully!');
+            CloseModal()
         } catch (error) {
             console.error("Form submission error", error);
             toast.error("Something went wrong");
+        }finally {
+            setloading(false)
         }
     }
+
+    const ResetValues=()=>{
+        HandleInsertModal()
+        form.reset(defaultValues)
+    }
+    const isInputIsViewingOnly:boolean=modaltype === "VIEW"
+
     return (
-        <Dialog   >
-            <DialogTrigger asChild>
-                <Button ><PlusIcon/></Button>
-            </DialogTrigger>
+        <Dialog   open={open}     >
+
+            {mode === "Archived" &&  <Button onClick={ResetValues} ><PlusIcon/></Button>}
+
+
             <DialogContent   className="overflow-y-auto  flex flex-col gap-7  sm:max-w-3xl ">
+                <DialogPrimitive.Close onClick={CloseModal} className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
+                    <XIcon />
+                    <span className="sr-only">Close</span>
+                </DialogPrimitive.Close>
                 <DialogHeader className="">
-                    <DialogTitle>Edit profile</DialogTitle>
+                    <DialogTitle>
+                        {modaltype === "INSERT"
+                            ? "New Member"
+                            : modaltype === "VIEW"
+                                ? "View Member"
+                                : "Edit Member"}
+                    </DialogTitle>
                     <DialogDescription>
-                        Make changes to your profile here. Click save when you're done.
+                        {modaltype === "INSERT"
+                            ? "Add a new member to the system. Click save when you're done."
+                            : modaltype === "VIEW"
+                                ? "View the member's profile information. Close the dialog when you're done."
+                                : "Update the member's profile. Click save when you're done."}
                     </DialogDescription>
                 </DialogHeader>
-            <div className="w-full ">
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-2 gap-4">
+
+
+                <div className="w-full ">
+
+                <Form  {...form}>
+                    <form  onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-2 gap-4">
 
                         <FormField
                             control={form.control}
                             name="firstname"
+                          disabled={isInputIsViewingOnly}
                             render={({ field }) => (
                                 <FormItem className={"gap-1"}>
                                     <FormLabel>First Name</FormLabel>
@@ -112,6 +174,7 @@ export function FormMember({reload} : FormProps) {
                         <FormField
                             control={form.control}
                             name="lastname"
+                            disabled={isInputIsViewingOnly}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Last Name</FormLabel>
@@ -131,6 +194,7 @@ export function FormMember({reload} : FormProps) {
                         <FormField
                             control={form.control}
                             name="address"
+                            disabled={isInputIsViewingOnly}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Address</FormLabel>
@@ -150,6 +214,7 @@ export function FormMember({reload} : FormProps) {
                         <FormField
                             control={form.control}
                             name="birthdate"
+                            disabled={isInputIsViewingOnly}
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Date of Birth</FormLabel>
@@ -170,6 +235,7 @@ export function FormMember({reload} : FormProps) {
                         <FormField
                             control={form.control}
                             name="school"
+                            disabled={isInputIsViewingOnly}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>School</FormLabel>
@@ -189,16 +255,17 @@ export function FormMember({reload} : FormProps) {
                         <FormField
                             control={form.control}
                             name="status"
+
                             render={({ field }) => (
-                                <FormItem className="w-full">
+                                <FormItem className="w-full ">
                                     <FormLabel>Educational Status</FormLabel>
-                                    <Select onValueChange={field.onChange}  >
-                                        <FormControl>
-                                            <SelectTrigger className="w-full">
+                                    <Select  disabled={isInputIsViewingOnly}        onValueChange={field.onChange}  value={field.value} >
+                                        <FormControl >
+                                            <SelectTrigger className="w-full pb-2">
                                                 <SelectValue  placeholder="Select educational status" />
                                             </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent className="w-[3rem] ">
+                                        <SelectContent className="w-[3rem] pb-0">
                                             <SelectItem className="flex w-full"  value="Undergraduate"> <EducationalStatus status={"Undergraduate"}/></SelectItem>
                                             <SelectItem className="flex w-full" value="Graduated"><EducationalStatus status={"Graduated"}/></SelectItem>
                                         </SelectContent>
@@ -212,6 +279,7 @@ export function FormMember({reload} : FormProps) {
                         <FormField
                             control={form.control}
                             name="contact"
+                            disabled={isInputIsViewingOnly}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Contact Number</FormLabel>
@@ -227,8 +295,11 @@ export function FormMember({reload} : FormProps) {
                                 </FormItem>
                             )}
                         />
+                        {modaltype === "VIEW" ?
+                            <Button onClick={CloseModal} type={"button"}>Close</Button>:
+                            <Button disabled={loading} type="submit"> {loading&&<Loader2 className={"animate-spin"}/>}Save</Button>
 
-                        <Button type="submit">Submit</Button>
+                    }
 
                     </form>
                 </Form>

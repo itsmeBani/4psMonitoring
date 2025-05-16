@@ -3,11 +3,11 @@ import {useFetchMembers} from "../hooks/useFetchMembers.ts";
 
 
 function Archived() {
-    const {archivedMember,reload}=useFetchMembers()
+    const {archivedMember,reloadArchived}=useFetchMembers()
     return (
         <div className="px-10">
 
-            <MemberTable mode={"Unarchived"}  reload={reload} data={archivedMember}/>
+            <MemberTable mode={"Unarchived"}   reload={reloadArchived} data={archivedMember}/>
         </div>
     );
 }
