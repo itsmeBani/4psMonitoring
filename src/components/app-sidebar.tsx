@@ -28,7 +28,7 @@ const data = {
     {
       name: "4ps Monitoring",
       logo: HandCoins,
-      plan: "Enterprise",
+      plan: "Tracking",
     },
   ],
 
