@@ -16,7 +16,7 @@ const {memberData, reload}=useFetchMembers()
         <div className="px-10 flex flex-col gap-3">
 
            <MemberTable mode={"Archived"} reload={reload}  data={memberData}/>
-            <Toaster theme={"dark"} richColors={true} position="top-right" />
+            <Toaster theme={"dark"} expand={true} richColors={true} position="top-right" />
 
         </div>
     );

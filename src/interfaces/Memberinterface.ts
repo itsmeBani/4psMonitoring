@@ -6,7 +6,8 @@ export interface MemberData {
     birthdate:Date
     contact:string,
     school:string,
-    status:"Undergraduate" | "Graduated"
+    status:"Undergraduate" | "Graduated" | "Stopped"
+    date_created:Date
 }
 
 

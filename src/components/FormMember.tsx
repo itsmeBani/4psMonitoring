@@ -268,6 +268,7 @@ export function FormMember({reload,open,EditedData,HandleInsertModal,modaltype,C
                                         <SelectContent className="w-[3rem] pb-0">
                                             <SelectItem className="flex w-full"  value="Undergraduate"> <EducationalStatus status={"Undergraduate"}/></SelectItem>
                                             <SelectItem className="flex w-full" value="Graduated"><EducationalStatus status={"Graduated"}/></SelectItem>
+                                            <SelectItem className="flex w-full" value="Stopped"><EducationalStatus status={"Stopped"}/></SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormDescription>Your current educational status (e.g., undergraduate or graduated).</FormDescription>

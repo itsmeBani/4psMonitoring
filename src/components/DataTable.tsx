@@ -1,213 +1,34 @@
 import * as React from "react"
+import {useState} from "react"
 import {
-    ColumnDef,
     ColumnFiltersState,
-    SortingState,
-    VisibilityState,
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
+    SortingState,
     useReactTable,
+    VisibilityState,
 } from "@tanstack/react-table"
-import {
-    ArchiveIcon,
-    ArrowUpDown,
-    ChevronDown,
-    CircleCheck,
-    List,
-    Loader,
-    MoreHorizontal,
-    PenBox, Trash,
-    User2
-} from "lucide-react"
+import {ArchiveIcon, BanIcon, ChevronDown, CircleCheck, List, Loader, Trash} from "lucide-react"
 
 import {Button} from "./ui/button.tsx"
-import {Checkbox} from "./ui/checkbox.tsx"
-import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "./ui/dropdown-menu.tsx"
+import {DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger,} from "./ui/dropdown-menu.tsx"
 import {Input} from "./ui/input.tsx"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "./ui/table.tsx"
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "./ui/table.tsx"
 import {MemberData} from "../interfaces/Memberinterface.ts";
 
-import EducationalStatus from "./EducationalStatus.tsx";
-import supabase from "../supabase-config/supabase.tsx";
 import {FormMember} from "./FormMember.tsx";
-import {useState} from "react";
+import useArchivedMember from "../hooks/useArchivedMember.tsx";
+
+import useDeleteMember from "../hooks/useDeleteMember.tsx";
+import {columns} from "./Columns.tsx";
 
 
-interface ColumnsProps {
-    onArchiveMember: (id: string) => void;
-    mode: string
-    HandleEditMember: (memberdata: MemberData) => void
-    HandleViewMember: (memberdata: MemberData) => void
-    PermanentlyDelete: (id: string) => void
-    Unarchived: (memberdata: MemberData) => void
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const columns = ({
-                            onArchiveMember,
-                            mode,
-                            HandleEditMember,
-                            HandleViewMember,
-                            PermanentlyDelete,
-                            Unarchived
-                        }: ColumnsProps): ColumnDef<MemberData>[] => [
-    {
-        id: "select",
-        header: ({table}) => (
-            <Checkbox className="border-black"
-                      checked={
-                          table.getIsAllPageRowsSelected() ||
-                          (table.getIsSomePageRowsSelected() && "indeterminate")
-                      }
-                      onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                      aria-label="Select all"
-            />
-        ),
-        cell: ({row}) => (
-            <Checkbox
-                className="border-black"
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
-            />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-    },
-    {
-
-        accessorKey: "firstname",
-        header: () => <div className="">Student Name</div>,
-        cell: ({row}) => {
-            const first = row.original.firstname;
-            const last = row.original.lastname;
-
-            return <div className=" font-normal ">{first} {last}</div>
-        },
-    },
-
-    {
-        accessorKey: "address",
-        header: ({column}) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Address
-                    <ArrowUpDown/>
-                </Button>
-            )
-        },
-        cell: ({row}) => <div className="lowercase">{row.getValue("address")}</div>,
-    },
-
-    {
-        accessorKey: "school",
-        header: ({column}) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    School
-                    <ArrowUpDown/>
-                </Button>
-            )
-        },
-        cell: ({row}) => <div className="lowercase">{row.getValue("school")}</div>,
-    },
-    {
-        accessorKey: "contact",
-        header: () => <div className="">Contact Number</div>,
-        cell: ({row}) => {
-
-
-            return <div className=" font-medium">{row.getValue("contact")}</div>
-        },
-    },
-    {
-
-        accessorKey: "status",
-        header: "Status",
-        cell: ({row}) => (
-            <div className="capitalize  flex">
-                <EducationalStatus status={row.getValue("status")}/>
-
-            </div>
-        ),
-
-    },
-    {
-        id: "actions",
-        header: "Action",
-        enableHiding: false,
-        cell: ({row}) => {
-
-
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal/>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
-                        {mode === "Archived" ?
-                            <>
-                                <DropdownMenuItem onClick={() => HandleEditMember(row?.original)}><PenBox/> Edit
-                                    Information</DropdownMenuItem>
-                                <DropdownMenuSeparator/>
-                                <DropdownMenuItem onClick={() => HandleViewMember(row?.original)}><User2/>View
-                                    Member</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onArchiveMember(row.original.user_id)}
-                                                  variant={"destructive"}><ArchiveIcon/>Archive</DropdownMenuItem>
-
-                            </> : <>
-                                <DropdownMenuItem onClick={() => Unarchived(row?.original)}
-                                                  variant={"default"}><ArchiveIcon/>Unarchived</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => PermanentlyDelete(row.original.user_id)}
-                                                  variant={"destructive"}><Trash/>Delete </DropdownMenuItem>
-
-                            </>
-
-
-                        }
-
-
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )
-        },
-
-    },
-
-]
 
 
 const filterOptions = [
-
     {
         value: "",
         key: "Show All",
@@ -227,7 +48,17 @@ const filterOptions = [
         key: "Undergraduate",
         id: 2,
         icon: <Loader size={16}/>
-    }]
+    },
+    {
+        value: "Stopped",
+        key: "Stopped",
+        id: 2,
+        icon: <BanIcon size={16} className=" text-red-500"/>
+    }
+
+
+
+]
 
 interface DatatableProps {
     data: MemberData[]
@@ -239,6 +70,14 @@ interface DatatableProps {
 type ModalType = "INSERT" | "UPDATE" | "VIEW"
 
 export function MemberTable({data, reload, mode}: DatatableProps) {
+
+    const OnSuccessReload= ()=> {
+        reload()
+        table.resetRowSelection()
+    }
+    const {ArchiveMember, Unarchived,BatchArchived}=useArchivedMember(OnSuccessReload)
+    const {BatchDelete, PermanentlyDelete}=useDeleteMember(OnSuccessReload)
+
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [OpenModal, setOpenModal] = useState<boolean>(false)
     const [EditedData, setEditedData] = useState<MemberData | undefined>()
@@ -250,81 +89,25 @@ export function MemberTable({data, reload, mode}: DatatableProps) {
         React.useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = React.useState({})
 
-    const ArchiveMember = async (id: string): Promise<void> => {
-        if (!id) return
-        const {data} = await supabase
-            .from('member')
-            .delete()
-            .eq('user_id', id)
-            .select()
-        if (data) {
-            reload()
-        }
-    }
-
-    const HandleEditMember = (memberdata: MemberData) => {
+    const HandleEditMember = (memberData: MemberData) => {
         setModalType("UPDATE")
-        setEditedData(memberdata)
+        setEditedData(memberData)
         setOpenModal(true)
-
     }
 
-    const HandleViewMember = (memberdata: MemberData) => {
+    const HandleViewMember = (memberData: MemberData) => {
         setModalType("VIEW")
-        setEditedData(memberdata)
+        setEditedData(memberData)
         setOpenModal(true)
     }
     const HandleInsertModal = () => {
         setModalType("INSERT")
         setOpenModal(true)
+
     }
     const CloseModal = () => {
         setOpenModal(false)
     }
-    const BatchDelete = async () => {
-        const {selectedId} = await getSelectedRow()
-        const response = await supabase
-            .from('archived_member')
-            .delete()
-            .in('user_id', selectedId)
-        if (!response.error) {
-            reload()
-        }
-    }
-    const Unarchived = async (memberdata: MemberData) => {
-        const {error: ErrorAdding} = await supabase
-            .from('member')
-            .insert({
-                lastname: memberdata?.lastname,
-                firstname: memberdata?.firstname,
-                address: memberdata?.address,
-                birthdate: memberdata?.birthdate,
-                contact: memberdata?.contact,
-                school: memberdata?.school,
-                status: memberdata?.status,
-            })
-
-        if (ErrorAdding) return
-        const {error: ErrorfDeleting} = await supabase
-            .from('archived_member')
-            .delete()
-            .eq('user_id', memberdata?.user_id)
-
-        if (ErrorfDeleting) return
-
-        reload()
-    }
-
-    const PermanentlyDelete = async (id: string): Promise<void> => {
-        const {error} = await supabase
-            .from('archived_member')
-            .delete()
-            .eq('user_id', id)
-        if (!error) {
-            reload()
-        }
-    }
-
 
     const table = useReactTable({
         data,
@@ -351,29 +134,9 @@ export function MemberTable({data, reload, mode}: DatatableProps) {
             rowSelection,
         },
     })
-    const getSelectedRow = async () => {
-        const RowSelected = table.getSelectedRowModel().rows;
-        const selectedId = [];
-        const selectedData = []
-        for (let index = 0; index <= RowSelected.length - 1; index++) {
-            selectedId.push(RowSelected[index]?.original?.user_id)
-            selectedData.push(RowSelected[index]?.original)
-        }
-        return {selectedId, selectedData}
-    }
 
 
-    const BatchArchived = async () => {
-        const {selectedId} = await getSelectedRow()
-        const {error} = await supabase
-            .from('member')
-            .delete()
-            .in('user_id', selectedId)
-        if (!error) {
-            reload()
-        }
 
-    }
 
 
     return (
@@ -396,7 +159,9 @@ export function MemberTable({data, reload, mode}: DatatableProps) {
 
                             <Button variant={"outline"}
                                     className="bg-unset hover:text-white text-red-600 hover:bg-red-500 shadow-none"
-                                    onClick={mode === "Archived" ? BatchArchived : BatchDelete}>
+                                    onClick={()=>
+                                        mode === "Archived" ? BatchArchived(table.getSelectedRowModel().rows) : BatchDelete(table.getSelectedRowModel().rows)
+                                    }>
 
                                 {mode === "Archived" ?     <ArchiveIcon/> : <Trash/>}
 

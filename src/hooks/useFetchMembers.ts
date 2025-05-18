@@ -9,67 +9,90 @@ import {MemberData} from "../interfaces/Memberinterface.ts";
 
 
 
-interface countProps {
-    undergradCount:number
-    gradCount:number
+
+interface Count {
+    Undergraduate:number
+    Graduated:number
+    Inactive:number
+    Total : number
 }
+
 export const useFetchMembers = () => {
 const [memberData,setMemberData]=useState<MemberData[]>([])
+    const [RecentMemberData,setRecentMemberData]=useState<MemberData[]>([])
 const [archivedMember,setArchivedMember]=useState<MemberData[]>([])
-    const [totalMember, setTotalMember] = useState<countProps>({
-        undergradCount: 0,
-        gradCount: 0,
-    });
+const [totalQuantity,setTotalQuantity]=useState<Count>()
     const fetchMembers : ()=>void= async ()=>{
         const { data, error } = await supabase
             .from('member')
             .select()
-
-        if (error) return
+                if (error) return
 
         setMemberData(data)
     }
 
-    const fetchArchivedMembers : ()=>void= async ()=>{
+    const fetchRecentMembers : ()=>void= async ()=>{
         const { data, error } = await supabase
-            .from('archived_member')
+            .from('member')
             .select()
-
+            .order('date_created', { ascending: false })
+            .limit(8)
         if (error) return
 
+        setRecentMemberData(data)
+    }
+    const fetchArchivedMembers : ()=>void= async ()=>{
+        const { data, error } = await supabase
+            .from('member')
+            .select()
+        if (error) return
         setArchivedMember(data)
     }
 
-    const CountGraduated:()=>void = async (): Promise<void> => {
-        const { count: undergradCount, error: undergradError } = await supabase
+    const Count :(status: string) => Promise<number | null>   =async (status:string) => {
+        const { count, error } = await supabase
             .from('member')
             .select('*', { count: 'exact', head: true })
-            .eq('status', 'Undergraduate');
-        const { count: gradCount, error: gradError } = await supabase
-            .from('member')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'Graduate');
-
-        if (undergradError || gradError) {
-            console.error('Error counting:', undergradError || gradError);
-            return;
-        }
-
-        setTotalMember({
-            undergradCount: undergradCount || 0,
-            gradCount: gradCount || 0,
-        });
+            .eq('status', status);
+        if (error) return 0
+        return  count
     };
+
+
+
+const CountQuantityPerStatus: ()=>void =async () =>{
+    const [UNDERGRADUATECOUNT, GRADUATED, INACTIVE] = await Promise.all([
+        Count("Undergraduate"),
+        Count("Graduated"),
+        Count("Stopped"),
+    ]);
+
+    setTotalQuantity({
+        Undergraduate: UNDERGRADUATECOUNT ?? 0,
+        Graduated: GRADUATED ?? 0,
+        Inactive: INACTIVE ?? 0,
+        Total: (UNDERGRADUATECOUNT ?? 0) + (GRADUATED ?? 0) + (INACTIVE ?? 0),
+    });
+}
 
 
 
     useEffect(() => {
         fetchMembers()
+        fetchRecentMembers()
+        CountQuantityPerStatus()
         fetchArchivedMembers()
-        CountGraduated()
     }, []);
 
 
-    return {reload:fetchMembers,reloadArchived:fetchArchivedMembers,memberData,fetchArchivedMembers,archivedMember,totalMember}
+    return {reload:fetchMembers,
+        reloadArchived:fetchArchivedMembers,
+        memberData,
+        RecentMemberData,
+        totalQuantity,
+        fetchArchivedMembers,
+        archivedMember,
+
+    }
 
 }
