@@ -1,4 +1,4 @@
-import {MemberTable,} from "../components/DataTable.tsx";
+import {MemberTable,} from "../components/MemberTable.tsx";
 import {useFetchMembers} from "../hooks/useFetchMembers.ts";
 import {Toaster} from "sonner";
 

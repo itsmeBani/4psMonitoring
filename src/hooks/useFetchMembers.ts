@@ -1,6 +1,8 @@
 import {useEffect, useState} from "react";
 import supabase from "../supabase-config/supabase.tsx";
 import {MemberData} from "../interfaces/Memberinterface.ts";
+import {StudentData} from "../interfaces/StudentInterface.ts";
+import {toast} from "sonner";
 
 
 
@@ -19,17 +21,36 @@ interface Count {
 
 export const useFetchMembers = () => {
 const [memberData,setMemberData]=useState<MemberData[]>([])
-    const [RecentMemberData,setRecentMemberData]=useState<MemberData[]>([])
+const [RecentMemberData,setRecentMemberData]=useState<MemberData[]>([])
 const [archivedMember,setArchivedMember]=useState<MemberData[]>([])
 const [totalQuantity,setTotalQuantity]=useState<Count>()
+    const [fetchStudentMemberData,setFetchStudentMemberData]=useState<StudentData[]>([])
     const fetchMembers : ()=>void= async ()=>{
         const { data, error } = await supabase
-            .from('member')
-            .select()
+            .from('Member')
+            .select(`*, Student(count)`)
+            .eq('isArchived', false)
                 if (error) return
-
-        setMemberData(data)
+             setMemberData(data)
     }
+
+    const fetchStudentMember=async (ParentID:string) :Promise<void>=>{
+    if (!ParentID) return
+        const { data, error } = await supabase
+            .from('Student')
+            .select()
+            .eq('parent_id', ParentID)
+        if (error){
+            toast.error("Something went Wrong")
+            return
+        }
+        if (data){
+            setFetchStudentMemberData(data)
+        }
+
+    }
+
+
 
     const fetchRecentMembers : ()=>void= async ()=>{
         const { data, error } = await supabase
@@ -43,8 +64,9 @@ const [totalQuantity,setTotalQuantity]=useState<Count>()
     }
     const fetchArchivedMembers : ()=>void= async ()=>{
         const { data, error } = await supabase
-            .from('member')
-            .select()
+            .from('Member')
+            .select(`*, Student(count)`)
+            .eq('isArchived', true)
         if (error) return
         setArchivedMember(data)
     }
@@ -82,6 +104,7 @@ const CountQuantityPerStatus: ()=>void =async () =>{
         fetchRecentMembers()
         CountQuantityPerStatus()
         fetchArchivedMembers()
+
     }, []);
 
 
@@ -92,6 +115,8 @@ const CountQuantityPerStatus: ()=>void =async () =>{
         totalQuantity,
         fetchArchivedMembers,
         archivedMember,
+        fetchStudentMember,
+        fetchStudentMemberData
 
     }
 

@@ -1,5 +1,4 @@
 import * as React from "react"
-import {useState} from "react"
 import {
     ColumnFiltersState,
     flexRender,
@@ -11,7 +10,7 @@ import {
     useReactTable,
     VisibilityState,
 } from "@tanstack/react-table"
-import {ArchiveIcon, BanIcon, ChevronDown, CircleCheck, List, Loader, Trash} from "lucide-react"
+import {ArchiveIcon, ArchiveRestoreIcon, ChevronDown} from "lucide-react"
 
 import {Button} from "./ui/button.tsx"
 import {DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger,} from "./ui/dropdown-menu.tsx"
@@ -24,42 +23,10 @@ import useArchivedMember from "../hooks/useArchivedMember.tsx";
 
 import useDeleteMember from "../hooks/useDeleteMember.tsx";
 import {columns} from "./Columns.tsx";
-
-
-
-
-const filterOptions = [
-    {
-        value: "",
-        key: "Show All",
-        id: 3,
-        icon: <List size={16}/>
-
-    },
-    {
-        value: "Graduated",
-        key: "Graduated",
-        id: 1,
-        icon: <CircleCheck size={16} className=" text-green-500"/>
-
-    },
-    {
-        value: "Undergraduate",
-        key: "Undergraduate",
-        id: 2,
-        icon: <Loader size={16}/>
-    },
-    {
-        value: "Stopped",
-        key: "Stopped",
-        id: 2,
-        icon: <BanIcon size={16} className=" text-red-500"/>
-    }
-
-
-
-]
-
+import StudentForm from "./StudentForm.tsx";
+import {useMemberModal} from "../hooks/useMemberModal.tsx";
+import ViewStudent from "./ViewStudent.tsx";
+import {useStudentModal} from "../hooks/useStudentModal.tsx";
 interface DatatableProps {
     data: MemberData[]
     reload: () => void
@@ -67,57 +34,64 @@ interface DatatableProps {
 }
 
 
-type ModalType = "INSERT" | "UPDATE" | "VIEW"
-
 export function MemberTable({data, reload, mode}: DatatableProps) {
 
-    const OnSuccessReload= ()=> {
+    const OnSuccessReload = () => {
         reload()
         table.resetRowSelection()
     }
-    const {ArchiveMember, Unarchived,BatchArchived}=useArchivedMember(OnSuccessReload)
-    const {BatchDelete, PermanentlyDelete}=useDeleteMember(OnSuccessReload)
+    const {BatchArchived    ,handleArchiveToggle} = useArchivedMember(OnSuccessReload)
+    const {PermanentlyDelete} = useDeleteMember(OnSuccessReload)
+
+
+    const {
+        open: openStudentModal,
+        HandleOpenModal: HandleOpenStudentModal,
+        selectedParentID,
+    } = useMemberModal()
+
+
+    const {
+        open: OpenFormMember,
+        CloseModal: CloseMemberModal,
+        HandleView: HandleViewMember,
+        HandleInsert: HandleInsertModal,
+        HandleUpdate: HandleEditMember,
+        data: FormMemberData,
+        mode: FormMemberModalType
+
+    } = useMemberModal()
+
+    const {
+        open : OpenStudentModal,
+        HandleOpenStudentModal : HandleOpenViewStudent,
+        CloseModal : CloseViewStudentModal,
+        selectedViewParentID :ViewParentID
+    }=useStudentModal()
+
+
+
+
 
     const [sorting, setSorting] = React.useState<SortingState>([])
-    const [OpenModal, setOpenModal] = useState<boolean>(false)
-    const [EditedData, setEditedData] = useState<MemberData | undefined>()
-    const [modaltype, setModalType] = useState<ModalType | undefined>()
+
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []
     )
-    const [columnVisibility, setColumnVisibility] =
-        React.useState<VisibilityState>({})
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = React.useState({})
 
-    const HandleEditMember = (memberData: MemberData) => {
-        setModalType("UPDATE")
-        setEditedData(memberData)
-        setOpenModal(true)
-    }
-
-    const HandleViewMember = (memberData: MemberData) => {
-        setModalType("VIEW")
-        setEditedData(memberData)
-        setOpenModal(true)
-    }
-    const HandleInsertModal = () => {
-        setModalType("INSERT")
-        setOpenModal(true)
-
-    }
-    const CloseModal = () => {
-        setOpenModal(false)
-    }
 
     const table = useReactTable({
         data,
         columns: columns({
-            onArchiveMember: ArchiveMember,
+            handleArchiveToggle,
             mode: mode,
             HandleEditMember,
+            HandleOpenViewStudent,
             HandleViewMember,
+            HandleOpenStudentModal,
             PermanentlyDelete,
-            Unarchived
         }),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -136,20 +110,32 @@ export function MemberTable({data, reload, mode}: DatatableProps) {
     })
 
 
-
-
-
     return (
         <div className="w-full flex flex-col gap-4">
             <div className="flex place-items-end w-full justify-end ">
                 <FormMember
                     mode={mode}
-                    open={OpenModal}
-                    EditedData={EditedData}
-                    modaltype={modaltype}
-                    CloseModal={CloseModal}
+                    open={OpenFormMember}
+                    EditedData={FormMemberData}
+                    modaltype={FormMemberModalType}
+                    CloseModal={CloseMemberModal}
                     HandleInsertModal={HandleInsertModal}
                     reload={reload}/>
+
+                <StudentForm
+                    modalType={"INSERT"}
+                    reload={reload}
+                    ParentID={selectedParentID}
+                    HandleOpenStudentModal={HandleOpenStudentModal}
+                    openStudentModal={openStudentModal}/>
+
+
+                <ViewStudent
+                    ParentID={ViewParentID}
+                    CloseViewStudentModal={CloseViewStudentModal}
+                    OpenStudentModal={OpenStudentModal}/>
+
+
             </div>
             <div className=" flex flex-row gap-2  justify-between w-full   ">
                 <div>
@@ -158,15 +144,15 @@ export function MemberTable({data, reload, mode}: DatatableProps) {
                         <div className="flex gap-2 place-items-center">
 
                             <Button variant={"outline"}
-                                    className="bg-unset hover:text-white text-red-600 hover:bg-red-500 shadow-none"
-                                    onClick={()=>
-                                        mode === "Archived" ? BatchArchived(table.getSelectedRowModel().rows) : BatchDelete(table.getSelectedRowModel().rows)
+                                    className="bg-unset shadow-none"
+                                    onClick={() =>
+                                        mode === "Archived" ? BatchArchived(table.getSelectedRowModel().rows,true) : BatchArchived(table.getSelectedRowModel().rows,false)
                                     }>
 
-                                {mode === "Archived" ?     <ArchiveIcon/> : <Trash/>}
+                                {mode === "Archived" ? <ArchiveIcon/> : <ArchiveRestoreIcon />}
 
                             </Button>
-                            <p className="CircularFont text-[12px]">Selected  {table.getSelectedRowModel().rows.length} records</p>
+                            <p className="CircularFont text-[12px]"> {mode === "Archived" ? "Archive" : "Unarchived"} {table.getSelectedRowModel().rows.length} records</p>
                         </div>
 
                     }
@@ -206,29 +192,29 @@ export function MemberTable({data, reload, mode}: DatatableProps) {
                                 })}
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className=" CircularFont text-black/80 border-black/40">
-                                Status <ChevronDown/>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="CircularFont flex flex-col gap-1 p-2">
+                    {/*<DropdownMenu>*/}
+                    {/*    <DropdownMenuTrigger asChild>*/}
+                    {/*        <Button variant="outline" className=" CircularFont text-black/80 border-black/40">*/}
+                    {/*            Status <ChevronDown/>*/}
+                    {/*        </Button>*/}
+                    {/*    </DropdownMenuTrigger>*/}
+                    {/*    <DropdownMenuContent className="CircularFont flex flex-col gap-1 p-2">*/}
 
-                            {filterOptions.map((option) => {
-                                return (
-                                    <DropdownMenuCheckboxItem key={option.key}
-                                                              onClick={() => table.getColumn("status")?.setFilterValue(option.value)}
-                                                              className={"p-0"}>
-                                        <div
-                                            className="flex w-full p-1 rounded-md border-[1px] text-gray-500 gap-1 text-[12px] border-gray-400">
-                                            {option.icon}{option.key}
-                                        </div>
-                                    </DropdownMenuCheckboxItem>
-                                )
-                            })}
+                    {/*        {filterOptions.map((option) => {*/}
+                    {/*            return (*/}
+                    {/*                <DropdownMenuCheckboxItem key={option.key}*/}
+                    {/*                                          onClick={() => table.getColumn("status")?.setFilterValue(option.value)}*/}
+                    {/*                                          className={"p-0"}>*/}
+                    {/*                    <div*/}
+                    {/*                        className="flex w-full p-1 rounded-md border-[1px] text-gray-500 gap-1 text-[12px] border-gray-400">*/}
+                    {/*                        {option.icon}{option.key}*/}
+                    {/*                    </div>*/}
+                    {/*                </DropdownMenuCheckboxItem>*/}
+                    {/*            )*/}
+                    {/*        })}*/}
 
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    {/*    </DropdownMenuContent>*/}
+                    {/*</DropdownMenu>*/}
                 </div>
             </div>
             <div className="rounded-md border-[1px] border-black/25 py-3 px-5">

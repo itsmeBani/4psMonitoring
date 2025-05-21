@@ -1,13 +1,19 @@
+interface StudentCount {
+    count: number;
+}
+
+
 export interface MemberData {
-    user_id : string,
+    Student: StudentCount[]
+    parent_id: string,
     lastname:string,
+    house_no:string,
     firstname:string,
+    middle_name:string
     address:string,
     birthdate:Date
     contact:string,
-    school:string,
-    status:"Undergraduate" | "Graduated" | "Stopped"
-    date_created:Date
+    created_at:Date
 }
 
 

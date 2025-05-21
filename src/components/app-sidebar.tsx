@@ -2,7 +2,7 @@ import * as React from "react"
 import {
   Users,
   HandCoins,
-  LayoutDashboard, ArchiveIcon
+  LayoutDashboard, ArchiveIcon, SquareUserIcon
 } from "lucide-react"
 
 import { NavContent } from "./NavContent.tsx"
@@ -42,6 +42,10 @@ const data = {
       name: "Members",
       url: "/members",
       icon: Users,
+    }, {
+      name: "Students",
+      url: "/students",
+      icon: SquareUserIcon,
     },
     {
       name: "Archive",
@@ -61,7 +65,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavHeader  header={data.header} />
       </SidebarHeader>
       <SidebarContent >
-
         <NavContent projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>

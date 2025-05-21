@@ -1,4 +1,4 @@
-import {useState} from "react";
+
 import supabase from "../supabase-config/supabase.tsx";
 import {MemberData} from "../interfaces/Memberinterface.ts";
 import {useGetRowSelected} from "./usegetRowSelected.tsx";
@@ -7,67 +7,54 @@ import {toast} from "sonner";
 type useArchivedMemberProps = ()=>void
 
  const useArchivedMember = (OnsuccessReload:useArchivedMemberProps) => {
-    const [loading,setLoading]=useState<boolean>(false)
 
      const {getSelectedRow}=useGetRowSelected()
-    const ArchiveMember = async (id: string): Promise<void> => {
-        setLoading(true)
-        if (!id) return
-        const {data,error} = await supabase
-            .from('member')
-            .delete()
-            .eq('user_id', id)
+     const handleArchiveToggle = async (id: string, shouldArchive: boolean): Promise<void> => {
+         if (!id) return;
 
-        if (error){
+         const { data, error } = await supabase
+             .from('Member')
+             .update({ isArchived: shouldArchive })
+             .eq('parent_id', id)
+             .select();
 
-            toast.error('Something went Wrong');
-        }
-        if (!data) {
-            OnsuccessReload()
-            toast.success('Archived Successfully!');
+         if (error) {
+             console.log(error);
+             toast.error('Something went wrong');
+         }
 
-        }
-    }
+         if (data) {
+             OnsuccessReload();
+             toast.success(shouldArchive ? 'Archived Successfully!' : 'Unarchived Successfully!');
+         }
+     };
 
-     const Unarchived = async (memberdata: MemberData) => {
-         const {error: ErrorAdding} = await supabase
-             .from('member')
-             .insert({
-                 lastname: memberdata?.lastname,
-                 firstname: memberdata?.firstname,
-                 address: memberdata?.address,
-                 birthdate: memberdata?.birthdate,
-                 contact: memberdata?.contact,
-                 school: memberdata?.school,
-                 status: memberdata?.status,
-             })
 
-         if (ErrorAdding) return
-         const {error: ErrorfDeleting} = await supabase
-             .from('archived_member')
-             .delete()
-             .eq('user_id', memberdata?.user_id)
 
-         if (ErrorfDeleting) return
-             OnsuccessReload()
-         toast.success('Unarchived Successfully!');
-     }
-     const BatchArchived = async (getSelectedRowModel :Row<MemberData>[]) => {
+
+
+     const BatchArchived = async (getSelectedRowModel :Row<MemberData>[],shouldArchive: boolean) => {
          const {selectedId} = await getSelectedRow(getSelectedRowModel)
-         const {error} = await supabase
-             .from('member')
-             .delete()
-             .in('user_id', selectedId)
-         if (!error) {
-             OnsuccessReload()
-             toast.success('Unarchived Successfully!');
-         }else {
-             toast.error('Unarchived Successfully!');
+         const { data, error } = await supabase
+             .from('Member')
+             .update({ isArchived: shouldArchive })
+             .in('parent_id', selectedId)
+             .select()
+         console.log(error)
+         console.log(data)
+         if (error) {
+             console.log(error);
+             toast.error('Something went wrong');
+         }
+
+         if (data) {
+             OnsuccessReload();
+             toast.success(shouldArchive ? 'Archived Successfully!' : 'Unarchived Successfully!');
          }
 
      }
 
-    return {ArchiveMember,loading,Unarchived,BatchArchived}
+    return {BatchArchived,handleArchiveToggle}
 
 
 };

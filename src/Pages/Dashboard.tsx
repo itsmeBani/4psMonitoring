@@ -1,11 +1,11 @@
 
-import {useFetchMembers} from "../hooks/useFetchMembers.ts";
+// import {useFetchMembers} from "../hooks/useFetchMembers.ts";
 import Widgets from "../components/Widgets.tsx";
-import RecentMemberTable from "../components/RecentMemberTable.tsx";
+// import RecentMemberTable from "../components/RecentMemberTable.tsx";
 
 
 function Dashboard() {
-    const {RecentMemberData} = useFetchMembers()
+    // const {RecentMemberData} = useFetchMembers()
     return (
         <>
             <div className="flex flex-1 flex-col p-8 pt-0">
@@ -18,7 +18,7 @@ function Dashboard() {
                         A list of our most recently joined members, including undergraduate and graduate students
                         actively participating in the community.
                     </p>
-                    <RecentMemberTable data={RecentMemberData}/>
+                    {/*<RecentMemberTable data={RecentMemberData}/>*/}
                 </div>
             </div>
         </>

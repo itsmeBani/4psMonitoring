@@ -9,6 +9,8 @@ import {toast} from "sonner";
 const useDeleteMember = (OnsuccessReload:()=>void) => {
     const [loading,setLoading]=useState<boolean>(false)
     const {getSelectedRow}=useGetRowSelected()
+
+
     const BatchDelete = async (getSelectedRowModel :Row<MemberData>[]) => {
         setLoading(true)
         const {selectedId} = await getSelectedRow(getSelectedRowModel)
@@ -25,16 +27,15 @@ const useDeleteMember = (OnsuccessReload:()=>void) => {
         }
     }
 
-    const PermanentlyDelete = async (id: string): Promise<void> => {
+    const PermanentlyDelete = async (ParentID: string): Promise<void> => {
     setLoading(true)
         const {error} = await supabase
-            .from('archived_member')
+            .from('Member')
             .delete()
-            .eq('user_id', id)
+            .eq('parent_id', ParentID)
         if (!error) {
             toast.error('Deleted Successfully!');
             OnsuccessReload()
-
             setLoading(false)
 
         }else {

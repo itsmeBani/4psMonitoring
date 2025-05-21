@@ -43,10 +43,10 @@ function Widgets() {
             icon: <BanIcon color={"gray"}  size={25} />,
         },
         {
-            title: "Total Member",
+            title: "Total Grantee",
             value:totalQuantity ?  totalQuantity.Total : 0,
-            subtitle: "All Students",
-            description: "Sum of all enrolled, graduated, and inactive students",
+            subtitle: "All Grantee",
+            description: "Total beneficiaries under the 4Ps Pantawid Pamilya program",
             icon: <Users2Icon color={"gray"} size={25} />,
         },
     ];

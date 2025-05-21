@@ -8,7 +8,7 @@ export const useGetRowSelected = () => {
         const selectedId = [];
         const selectedData = []
         for (let index = 0; index <= RowSelected.length - 1; index++) {
-            selectedId.push(RowSelected[index]?.original?.user_id)
+            selectedId.push(RowSelected[index]?.original?.parent_id)
             selectedData.push(RowSelected[index]?.original)
         }
         return {selectedId, selectedData}
