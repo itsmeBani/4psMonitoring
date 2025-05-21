@@ -257,7 +257,7 @@ export function MemberTable({data, reload, mode}: DatatableProps) {
                         ) : (
                             <TableRow>
                                 <TableCell
-                                    colSpan={6}
+                                    colSpan={8}
                                     className="h-24 text-center CircularFont"
                                 >
                                     No results.
