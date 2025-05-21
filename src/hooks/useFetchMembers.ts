@@ -54,9 +54,9 @@ const [totalQuantity,setTotalQuantity]=useState<Count>()
 
     const fetchRecentMembers : ()=>void= async ()=>{
         const { data, error } = await supabase
-            .from('member')
-            .select()
-            .order('date_created', { ascending: false })
+            .from('Member')
+            .select(`*, Student(count)`)
+            .order('created_at', { ascending: false })
             .limit(8)
         if (error) return
 
@@ -73,27 +73,34 @@ const [totalQuantity,setTotalQuantity]=useState<Count>()
 
     const Count :(status: string) => Promise<number | null>   =async (status:string) => {
         const { count, error } = await supabase
-            .from('member')
+            .from('Student')
             .select('*', { count: 'exact', head: true })
             .eq('status', status);
         if (error) return 0
         return  count
     };
-
+    const CountGrantee : ()=>Promise<number |null>  =async () => {
+        const { count, error } = await supabase
+            .from('Member')
+            .select('*', { count: 'exact', head: true })
+        if (error) return 0
+        return  count
+    };
 
 
 const CountQuantityPerStatus: ()=>void =async () =>{
-    const [UNDERGRADUATECOUNT, GRADUATED, INACTIVE] = await Promise.all([
+    const [UNDERGRADUATECOUNT, GRADUATED, INACTIVE,TOTAL] = await Promise.all([
         Count("Undergraduate"),
         Count("Graduated"),
         Count("Stopped"),
+        CountGrantee()
     ]);
 
     setTotalQuantity({
         Undergraduate: UNDERGRADUATECOUNT ?? 0,
         Graduated: GRADUATED ?? 0,
         Inactive: INACTIVE ?? 0,
-        Total: (UNDERGRADUATECOUNT ?? 0) + (GRADUATED ?? 0) + (INACTIVE ?? 0),
+        Total: TOTAL?? 0,
     });
 }
 

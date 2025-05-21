@@ -201,7 +201,7 @@ export const RecentColumns = (): ColumnDef<MemberData>[] => [
     {
 
         accessorKey: "firstname",
-        header: () => <div className="">Student Name</div>,
+        header: () => <div className="">Name of Grantee</div>,
         cell: ({row}) => {
             const first = row.original.firstname;
             const last = row.original.lastname;
@@ -225,22 +225,6 @@ export const RecentColumns = (): ColumnDef<MemberData>[] => [
         },
         cell: ({row}) => <div className="lowercase">{row.getValue("address")}</div>,
     },
-
-    {
-        accessorKey: "school",
-        header: ({column}) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    School
-                    <ArrowUpDown/>
-                </Button>
-            )
-        },
-        cell: ({row}) => <div className="lowercase">{row.getValue("school")}</div>,
-    },
     {
         accessorKey: "contact",
         header: () => <div className="">Contact Number</div>,
@@ -250,27 +234,25 @@ export const RecentColumns = (): ColumnDef<MemberData>[] => [
             return <div className=" font-medium">{row.getValue("contact")}</div>
         },
     },
+
     {
+        accessorKey: "Student",
+        header: () => <div className="">Students</div>,
+        cell: ({row}) => {
 
-        accessorKey: "status",
-        header: "Status",
-        cell: ({row}) => (
-            <div className="capitalize  flex">
-                <EducationalStatus status={row.getValue("status")}/>
 
-            </div>
-        ),
-
+            return <div className=" flex gap-1"><Users size={17}/>{row.original.Student[0].count}</div>
+        },
     },
     {
 
-        accessorKey: "date_created",
+        accessorKey: "created_at",
         header: "Date Joined",
         cell: ({row}) => (
             <div className="capitalize  flex">
                  <div className=" font-medium">
 
-                     {new Date(row.getValue("date_created")).toLocaleString('en-US', {
+                     {new Date(row.getValue("created_at")).toLocaleString('en-US', {
                          year: 'numeric',
                          month: 'long',
                          day: 'numeric',

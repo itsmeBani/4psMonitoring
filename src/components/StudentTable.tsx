@@ -30,7 +30,7 @@ interface StudentTableProps {
 
 
 
-const RecentMemberTable = ({data,tableMode,reload}: StudentTableProps) => {
+const StudentTable = ({data,tableMode,reload}: StudentTableProps) => {
 
 
    const {
@@ -237,4 +237,4 @@ const RecentMemberTable = ({data,tableMode,reload}: StudentTableProps) => {
     );
 };
 
-export default RecentMemberTable;
+export default StudentTable;

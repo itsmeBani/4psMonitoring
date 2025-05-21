@@ -17,7 +17,6 @@ interface RecentMemberTableProps {
 }
 const RecentMemberTable = ({data}:RecentMemberTableProps) => {
 
-
     const table = useReactTable({
         data,
         columns:RecentColumns(),
