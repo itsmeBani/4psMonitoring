@@ -34,4 +34,10 @@ export const NewStudentSchema = z.object({
     schooltype: z.string().min(1, { message: "School type is required." }),
     status: z.string().min(1, { message: "Status is required." }),
     schoollevel: z.string().min(1, { message: "School level is required." }),
+    schoolyearstart: z
+        .string()
+        .regex(/^\d{4}$/, "Enter a valid  year."),
+     schoolyearend: z
+        .string()
+        .regex(/^\d{4}$/, "Enter a valid  year.")
 });

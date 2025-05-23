@@ -313,12 +313,21 @@ export const StudentColumns = ({HandleEditStudent,HandleViewStudentModal,Permane
     {
         accessorKey: "schooladdress",
         header: () => <div>School Address</div>,
-        cell: ({ row }) => <div className="font-medium">{row.getValue("schooladdress")}</div>,
+        cell: ({ row }) => <div className="font-medium  uppercase capitalize">{row.getValue("schooladdress")}</div>,
     },
     {
         accessorKey: "schoolID",
         header: () => <div>School Id</div>,
         cell: ({ row }) => <div className="font-medium">{row.getValue("schoolID")}</div>,
+    },
+    {
+        accessorKey: "schoolyearstart",
+        header: () => <div className="">School Year</div>,
+        cell: ({row}) => {
+
+
+            return <div className=" font-medium">{row.getValue("schoolyearstart") + " - " + row.original.schoolyearend}</div>
+        },
     },
     {
         accessorKey: "schooltype",
@@ -330,6 +339,7 @@ export const StudentColumns = ({HandleEditStudent,HandleViewStudentModal,Permane
         header: () => <div>School Level</div>,
         cell: ({ row }) => <div className="font-medium">{row.getValue("schoollevel")}</div>,
     },
+
     {
         accessorKey: "status",
         header: "Status",

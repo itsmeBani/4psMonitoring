@@ -14,4 +14,6 @@ export interface StudentData {
     schoollevel: string
     created_at: Date
     status: "Graduated" | "Undergraduate" | "Stopped"
+    schoolyearend:string,
+    schoolyearstart:string
 }

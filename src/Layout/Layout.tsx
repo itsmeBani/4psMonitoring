@@ -7,10 +7,10 @@ import {Separator} from "@radix-ui/react-separator";
 function Layout() {
     return (
         <SidebarProvider>
-            <div className="w-full flex  h-screen ">
+            <div className="w-full flex   h-screen ">
                 <AppSidebar/>
-                <SidebarInset>
-                    <>
+                <SidebarInset className="h-full w-full">
+
 
                         <header className="flex h-auto pt-3 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
                             <div className="flex items-center gap-2 px-4">
@@ -19,8 +19,10 @@ function Layout() {
 
                             </div>
                         </header>
-                        <Outlet/>
-                    </>
+                      <div className="w-full overflow-hidden h-full flex">
+                          <Outlet/>
+                      </div>
+
                 </SidebarInset>
             </div>
         </SidebarProvider>

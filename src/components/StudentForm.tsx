@@ -48,6 +48,8 @@ function StudentForm({openStudentModal,HandleOpenStudentModal,ParentID,reload,mo
         schoolID: "",
         schooltype: "",
         schoollevel: "",
+        schoolyearstart:"",
+        schoolyearend:""
     }
     const [loading,setLoading]=useState<boolean>(false)
     const form = useForm < z.infer < typeof NewStudentSchema >> ({
@@ -110,7 +112,7 @@ function StudentForm({openStudentModal,HandleOpenStudentModal,ParentID,reload,mo
         <div>
             <Dialog  open={openStudentModal}   >
 
-                <DialogContent   className="overflow-y-auto  flex flex-col gap-7  sm:max-w-5xl ">
+                <DialogContent   className="overflow-y-auto  flex flex-col gap-7  sm:max-w-6xl ">
                     <DialogPrimitive.Close onClick={()=>HandleOpenStudentModal()}  className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
                     <XIcon />
                     <span className="sr-only">Close</span>
@@ -356,30 +358,76 @@ function StudentForm({openStudentModal,HandleOpenStudentModal,ParentID,reload,mo
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
-                                    control={form.control}
-                                    name="status"
 
-                                    render={({ field }) => (
-                                        <FormItem className="w-full ">
-                                            <FormLabel>Educational Status</FormLabel>
-                                            <Select         onValueChange={field.onChange}  value={field.value} >
-                                                <FormControl >
-                                                    <SelectTrigger     disabled={inputDisabledWhenViewing} className="w-full pb-2">
-                                                        <SelectValue  placeholder="Select educational status" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent className="w-[3rem] pb-0">
-                                                    <SelectItem className="flex w-full"  value="Undergraduate"> <EducationalStatus status={"Undergraduate"}/></SelectItem>
-                                                    <SelectItem className="flex w-full" value="Graduated"><EducationalStatus status={"Graduated"}/></SelectItem>
-                                                    <SelectItem className="flex w-full" value="Stopped"><EducationalStatus status={"Stopped"}/></SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormDescription>Your current educational status (e.g., undergraduate or graduated).</FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+
+                          <div className="flex gap-3">
+                              <FormField
+                                  control={form.control}
+                                  disabled={inputDisabledWhenViewing}
+                                  name="schoolyearstart"
+                                  render={({ field }) => (
+                                      <FormItem>
+                                          <FormLabel>School Year Start</FormLabel>
+                                          <FormControl>
+                                              <Input
+                                                  placeholder="e.g., 2024"
+                                                  type="text"
+
+                                                  {...field}
+                                              />
+                                          </FormControl>
+                                          <FormDescription>Your  school year starts.</FormDescription>
+                                          <FormMessage />
+                                      </FormItem>
+                                  )}
+                              />
+
+                              <FormField
+                                  control={form.control}
+                                  disabled={inputDisabledWhenViewing}
+                                  name="schoolyearend"
+                                  render={({ field }) => (
+                                      <FormItem>
+                                          <FormLabel>School Year End</FormLabel>
+                                          <FormControl>
+                                              <Input
+                                                  placeholder="e.g., 2024"
+                                                  type="text"
+                                                  {...field}
+                                              />
+                                          </FormControl>
+                                          <FormDescription> Your school year end.</FormDescription>
+
+                                          <FormMessage />
+                                      </FormItem>
+                                  )}
+                              />
+                          </div>
+
+                              <FormField
+                                  control={form.control}
+                                  name="status"
+                                  render={({ field }) => (
+                                      <FormItem className="w-full ">
+                                          <FormLabel>Educational Status</FormLabel>
+                                          <Select         onValueChange={field.onChange}  value={field.value} >
+                                              <FormControl >
+                                                  <SelectTrigger     disabled={inputDisabledWhenViewing} className="w-full pb-2">
+                                                      <SelectValue  placeholder="Select educational status" />
+                                                  </SelectTrigger>
+                                              </FormControl>
+                                              <SelectContent className="w-[3rem] pb-0">
+                                                  <SelectItem className="flex w-full"  value="Undergraduate"> <EducationalStatus status={"Undergraduate"}/></SelectItem>
+                                                  <SelectItem className="flex w-full" value="Graduated"><EducationalStatus status={"Graduated"}/></SelectItem>
+                                                  <SelectItem className="flex w-full" value="Stopped"><EducationalStatus status={"Stopped"}/></SelectItem>
+                                              </SelectContent>
+                                          </Select>
+                                          <FormDescription>Your current educational status (e.g., undergraduate or graduated).</FormDescription>
+                                          <FormMessage />
+                                      </FormItem>
+                                  )}
+                              />
+
 
                                 {modalType === "INSERT" || modalType === "UPDATE"?
                                     <Button disabled={loading} type="submit" className="mt-3 col-start-3"> {loading &&

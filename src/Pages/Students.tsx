@@ -6,7 +6,7 @@ import {useFetchStudents} from "../hooks/useFetchStudents.tsx";
 function Students() {
 const {studentData,reload}=useFetchStudents()
     return (
-        <div className="px-10 flex flex-col gap-3">
+        <div className="px-10 overflow-hidden flex flex-col w-full gap-3">
 
 
             <StudentTable data={studentData} reload={reload} tableMode={"MANAGE"}/>

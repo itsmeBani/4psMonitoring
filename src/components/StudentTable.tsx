@@ -49,8 +49,10 @@ const StudentTable = ({data,tableMode,reload}: StudentTableProps) => {
     )
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
         actions: tableMode !== "VIEW",
-        LRN:false,
-        schooladdress:false
+        LRN:true,
+        schooladdress:false,
+        schoolname:false,
+        schoollevel:false
     })
     const [rowSelection, setRowSelection] = React.useState({})
 
@@ -182,7 +184,7 @@ const StudentTable = ({data,tableMode,reload}: StudentTableProps) => {
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <div className=" rounded-md pt-3 border-[1px] border-black/25 py-3 px-5">
+            <div className=" rounded-md pt-3 grid grid-cols-1 border-[1px] border-black/25 py-3 px-5">
                 <Table >
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (

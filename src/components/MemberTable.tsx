@@ -192,29 +192,7 @@ export function MemberTable({data, reload, mode}: DatatableProps) {
                                 })}
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    {/*<DropdownMenu>*/}
-                    {/*    <DropdownMenuTrigger asChild>*/}
-                    {/*        <Button variant="outline" className=" CircularFont text-black/80 border-black/40">*/}
-                    {/*            Status <ChevronDown/>*/}
-                    {/*        </Button>*/}
-                    {/*    </DropdownMenuTrigger>*/}
-                    {/*    <DropdownMenuContent className="CircularFont flex flex-col gap-1 p-2">*/}
 
-                    {/*        {filterOptions.map((option) => {*/}
-                    {/*            return (*/}
-                    {/*                <DropdownMenuCheckboxItem key={option.key}*/}
-                    {/*                                          onClick={() => table.getColumn("status")?.setFilterValue(option.value)}*/}
-                    {/*                                          className={"p-0"}>*/}
-                    {/*                    <div*/}
-                    {/*                        className="flex w-full p-1 rounded-md border-[1px] text-gray-500 gap-1 text-[12px] border-gray-400">*/}
-                    {/*                        {option.icon}{option.key}*/}
-                    {/*                    </div>*/}
-                    {/*                </DropdownMenuCheckboxItem>*/}
-                    {/*            )*/}
-                    {/*        })}*/}
-
-                    {/*    </DropdownMenuContent>*/}
-                    {/*</DropdownMenu>*/}
                 </div>
             </div>
             <div className="rounded-md border-[1px] border-black/25 py-3 px-5">
