@@ -8,6 +8,7 @@ import Dashboard from "./Pages/Dashboard.tsx";
 import Members from "./Pages/Members.tsx";
 import Archived from "./Pages/Archived.tsx";
 import Students from "./Pages/Students.tsx";
+
 function App() {
     const {User}=useAuth()
     if (User === null) return  <Login/>

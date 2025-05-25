@@ -234,7 +234,32 @@ const StudentTable = ({data,tableMode,reload}: StudentTableProps) => {
                     </TableBody>
                 </Table>
             </div>
+            <div className="flex items-center justify-end space-x-2 py-4">
+                <div className="flex-1 text-sm CircularFont text-muted-foreground">
 
+                    {table.getFilteredRowModel().rows.length} records
+                </div>
+                <div className="space-x-2">
+                    <Button
+                        className="CircularFont"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => table.previousPage()}
+                        disabled={!table.getCanPreviousPage()}
+                    >
+                        Previous
+                    </Button>
+                    <Button
+                        className="CircularFont"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => table.nextPage()}
+                        disabled={!table.getCanNextPage()}
+                    >
+                        Next
+                    </Button>
+                </div>
+            </div>
         </div>
     );
 };

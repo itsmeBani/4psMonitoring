@@ -12,8 +12,9 @@ export const useFetchStudents = ( ParentID?:string) => {
 
         const { data, error } = await supabase
             .from('Student')
-            .select()
-            .order('created_at', { ascending: false })
+            .select('*, Member!inner(isArchived)')
+            .eq('Member.isArchived', false)
+            .order('created_at', { ascending: false });
         if (error){
             toast.error("Something Went Wrong")
         }

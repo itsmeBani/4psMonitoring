@@ -6,7 +6,7 @@ import {Toaster} from "sonner";
 function Archived() {
     const {archivedMember,reloadArchived}=useFetchMembers()
     return (
-        <div className="px-10">
+        <div className="px-10 w-full">
              <MemberTable data={archivedMember} reload={reloadArchived} mode={"Unarchived"}/>
              <Toaster theme={"dark"} expand={true} richColors={true} position="top-right" />
 
